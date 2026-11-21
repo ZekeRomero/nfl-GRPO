@@ -1,0 +1,4 @@
+pandas
+numpy
+scikit-learn
+# training (Colab): unsloth, trl, datasets

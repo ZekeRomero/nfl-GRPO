@@ -1,0 +1,5 @@
+data/raw/
+outputs_*/
+lora_*/
+__pycache__/
+*.pyc
