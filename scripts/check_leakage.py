@@ -42,9 +42,19 @@ print("leakage checks passed")
 good = "<reasoning>\nHome offense is far better and well rested.\n</reasoning>\n<pick>HOME</pick>\n<confidence>0.6</confidence>"
 assert parse_output(good) == ("HOME", 0.6, True)
 assert parse_output("HOME")[0] is None
-c = [good, good.replace("HOME", "AWAY"), "I like the home team", good]
-lab = ["HOME", "HOME", "HOME", "PUSH"]
-assert format_reward(None, c) == [0.25, 0.25, 0.0, 0.25]
-assert win_reward(None, c, lab) == [1.0, 0.0, 0.0, 0.5]
-assert np.allclose(brier_reward(None, c, lab), [0.84, 0.64, 0.0, 0.75])
+assert parse_output("<pick>HOME or AWAY</pick>")[0] is None            # copied the template
+assert parse_output("<pick>Team B (home)</pick>")[0] == "HOME"          # extra words tolerated
+assert parse_output("<pick>away</pick><confidence>60%</confidence>")[:2] == ("AWAY", 0.6)
+assert parse_output(good[:60])[0] is None                               # cut off before the pick
+c = [good, good.replace("HOME", "AWAY"), "I like the home team", good, "<pick>HOME</pick>"]
+lab = ["HOME", "HOME", "HOME", "PUSH", "HOME"]
+assert np.allclose(format_reward(None, c), [0.25, 0.25, 0.0, 0.25, 0.10])
+assert win_reward(None, c, lab) == [1.0, 0.0, 0.0, 0.5, 1.0]
+assert np.allclose(brier_reward(None, c, lab), [0.84, 0.64, 0.0, 0.75, 0.0])
 print("reward checks passed")
+
+# 4. Consistency ignores games with no base pick
+from nflgrpo.evaluate import consistency  # noqa: E402
+r = consistency({"base": ["HOME", None, "AWAY", None], "v": ["HOME", None, None, "HOME"]})
+assert r["n_compared"] == 2 and r["v"] == 0.5 and r["base_valid_rate"] == 0.5
+print("consistency checks passed")

@@ -65,10 +65,18 @@ def ece(conf, won, bins=10):
 
 def consistency(picks_by_variant: dict) -> dict:
     """picks_by_variant: {variant_name: [pick per game]}, must include 'base'.
-    Returns, per variant, the share of games where the pick matches base."""
+    Per variant: of the games where the base prompt got a usable pick, the share
+    where the variant gives the SAME pick. A missing variant pick counts as a
+    change. Games with no base pick are excluded (two blanks are not agreement).
+    Also returns base_valid_rate and n_compared."""
     base = np.array([p or "" for p in picks_by_variant["base"]])
-    return {k: float((np.array([p or "" for p in v]) == base).mean())
-            for k, v in picks_by_variant.items() if k != "base"}
+    ok = base != ""
+    out = {"n_compared": int(ok.sum()), "base_valid_rate": float(ok.mean())}
+    for k, v in picks_by_variant.items():
+        if k != "base":
+            v = np.array([p or "" for p in v])
+            out[k] = float((v[ok] == base[ok]).mean()) if ok.any() else float("nan")
+    return out
 
 
 def table(results: dict) -> pd.DataFrame:

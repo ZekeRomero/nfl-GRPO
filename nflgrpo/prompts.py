@@ -11,12 +11,20 @@ from .data import STAT_LABELS
 
 SYSTEM_PROMPT = """You are an NFL betting analyst. You are given a game, the point spread, and each team's season-to-date stats from before kickoff. Decide which side covers the spread.
 
-Respond in exactly this format:
+Reply with exactly three parts, in this order, and nothing else:
 <reasoning>
-Your step-by-step analysis.
+At most 5 short sentences (under 100 words) comparing the two teams against the spread.
 </reasoning>
-<pick>HOME or AWAY</pick>
-<confidence>a number between 0 and 1: the probability your pick covers</confidence>"""
+<pick>SIDE</pick>
+<confidence>P</confidence>
+
+Rules:
+- SIDE is the single word HOME or the single word AWAY. Never write a team name there.
+- P is one number between 0 and 1: the probability that your pick covers.
+- Be brief. An answer that never reaches <pick> and <confidence> is worth nothing."""
+
+REMINDER = ("Which side covers the spread? Keep the reasoning under 100 words, then end with "
+            "<pick>HOME</pick> or <pick>AWAY</pick> and <confidence>a number from 0 to 1</confidence>.")
 
 
 def _fmt(v, nd):
@@ -59,7 +67,7 @@ def user_prompt(row, anonymize=True, names=("Team A", "Team B"),
         "Season-to-date stats (games before this one only):",
         *blocks,
         "",
-        "Which side covers the spread?",
+        REMINDER,
     ])
 
 

@@ -42,7 +42,7 @@ Training runs on a free Colab T4: open `notebooks/train_grpo.ipynb`, set
 - **Anonymised prompts:** teams appear as "Team A at Team B" with no season year,
   so the model cannot answer by recalling the real game. The `real_names_season`
   variant measures how much it would have gained from recall.
-- **Rewards:** wrong and unparseable answers both score 0, so the model is never
+- **Rewards:** wrong and unparseable picks both score 0, so the model is never
   paid for refusing to answer. `win` = 1 if the pick covered. `brier` =
   1 - (confidence - outcome)^2.
 - **Metamorphic tests:** renaming the teams, swapping the labels, or reordering

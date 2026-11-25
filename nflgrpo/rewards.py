@@ -12,21 +12,38 @@ from __future__ import annotations
 
 import re
 
-_PICK = re.compile(r"<pick>\s*(HOME|AWAY)\s*</pick>", re.I)
-_CONF = re.compile(r"<confidence>\s*([01](?:\.\d+)?)\s*</confidence>", re.I)
+_PICK = re.compile(r"<pick>([^<]{0,60})</pick>", re.I)
+_SIDE = re.compile(r"\b(HOME|AWAY)\b", re.I)
+_CONF = re.compile(r"<confidence>\s*(\d*\.?\d+)\s*(%?)\s*</confidence>", re.I)
 _REASON = re.compile(r"<reasoning>(.+?)</reasoning>", re.S | re.I)
+
+
+def _pick(text):
+    """Side named in the LAST <pick> tag. Tolerates extra words ("Team B (home)")
+    but not an answer naming both sides ("HOME or AWAY")."""
+    tags = _PICK.findall(text)
+    if not tags:
+        return None, 0
+    sides = {m.upper() for m in _SIDE.findall(tags[-1])}
+    return (sides.pop() if len(sides) == 1 else None), len(tags)
+
+
+def _conf(text):
+    found = _CONF.findall(text)
+    if not found:
+        return None, 0
+    num, pct = found[-1]
+    v = float(num) / (100 if pct else 1)
+    return (v if 0.0 <= v <= 1.0 else None), len(found)
 
 
 def parse_output(text: str):
     """Returns (pick, confidence, valid). pick/confidence are None if missing.
-    valid = exactly one pick, one confidence in [0,1], non-empty reasoning."""
-    picks, confs = _PICK.findall(text), _CONF.findall(text)
-    pick = picks[-1].upper() if picks else None
-    conf = float(confs[-1]) if confs else None
-    if conf is not None and not 0.0 <= conf <= 1.0:
-        conf = None
+    valid = exactly one pick tag, one confidence tag, and a reasoning block."""
+    pick, n_pick = _pick(text)
+    conf, n_conf = _conf(text)
     reason = _REASON.search(text)
-    valid = (len(picks) == 1 and len(confs) == 1 and conf is not None
+    valid = (pick is not None and conf is not None and n_pick == 1 and n_conf == 1
              and reason is not None and len(reason.group(1).strip()) >= 20)
     return pick, conf, valid
 
@@ -36,8 +53,14 @@ def _text(completion):
 
 
 def format_reward(prompts, completions, **kw):
-    """Small bonus for a fully well-formed answer."""
-    return [0.25 if parse_output(_text(c))[2] else 0.0 for c in completions]
+    """Graded, so there is something to learn from even when most answers are
+    malformed: 0.10 for a usable pick, 0.10 for a usable confidence, and the
+    full 0.25 only when the whole answer is well formed."""
+    out = []
+    for c in completions:
+        pick, conf, valid = parse_output(_text(c))
+        out.append(0.25 if valid else 0.10 * (pick is not None) + 0.10 * (conf is not None))
+    return out
 
 
 def win_reward(prompts, completions, label, **kw):
@@ -68,6 +91,12 @@ def brier_reward(prompts, completions, label, **kw):
         else:
             out.append(1.0 - (conf - float(pick == y)) ** 2)
     return out
+
+
+def home_pick_monitor(prompts, completions, **kw):
+    """Not a reward (used with weight 0). Logs the share of sampled answers that
+    pick HOME at each step, so a collapse to one side shows up in the training log."""
+    return [1.0 if parse_output(_text(c))[0] == "HOME" else 0.0 for c in completions]
 
 
 REWARD_SETS = {
