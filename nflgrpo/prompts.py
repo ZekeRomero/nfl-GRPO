@@ -9,22 +9,16 @@ from __future__ import annotations
 
 from .data import STAT_LABELS
 
-SYSTEM_PROMPT = """You are an NFL betting analyst. You are given a game, the point spread, and each team's season-to-date stats from before kickoff. Decide which side covers the spread.
+# Keep the whole prompt under 512 tokens: Unsloth's GRPO generation path crashes
+# (CUDA illegal memory access) on longer prompts. The notebook asserts this.
+SYSTEM_PROMPT = """You are an NFL betting analyst. Given a game, the point spread and each team's season-to-date stats, decide which side covers the spread.
 
-Reply with exactly three parts, in this order, and nothing else:
-<reasoning>
-At most 5 short sentences (under 100 words) comparing the two teams against the spread.
-</reasoning>
-<pick>SIDE</pick>
-<confidence>P</confidence>
+Answer in under 100 words, in exactly this format:
+<reasoning>brief analysis</reasoning>
+<pick>HOME</pick> or <pick>AWAY</pick>
+<confidence>probability your pick covers, 0 to 1</confidence>"""
 
-Rules:
-- SIDE is the single word HOME or the single word AWAY. Never write a team name there.
-- P is one number between 0 and 1: the probability that your pick covers.
-- Be brief. An answer that never reaches <pick> and <confidence> is worth nothing."""
-
-REMINDER = ("Which side covers the spread? Keep the reasoning under 100 words, then end with "
-            "<pick>HOME</pick> or <pick>AWAY</pick> and <confidence>a number from 0 to 1</confidence>.")
+REMINDER = "Which side covers the spread? Be brief; end with <pick> and <confidence>."
 
 
 def _fmt(v, nd):
