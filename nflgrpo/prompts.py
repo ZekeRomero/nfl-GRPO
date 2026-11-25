@@ -15,8 +15,9 @@ SYSTEM_PROMPT = """You are an NFL betting analyst. Given a game, the point sprea
 
 Answer in under 100 words, in exactly this format:
 <reasoning>brief analysis</reasoning>
-<pick>HOME</pick> or <pick>AWAY</pick>
-<confidence>probability your pick covers, 0 to 1</confidence>"""
+<pick>SIDE</pick>
+<confidence>P</confidence>
+SIDE is the single word HOME or the single word AWAY. P is the probability your pick covers, from 0 to 1."""
 
 REMINDER = "Which side covers the spread? Be brief; end with <pick> and <confidence>."
 
