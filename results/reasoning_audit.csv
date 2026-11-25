@@ -1,0 +1,4 @@
+,answers,distinct_reasoning_texts,numbers_per_answer,pct_numbers_found_in_prompt,answers_with_explicit_claim_and_single_pick,pct_pick_matches_claim,mean_words
+untrained,672.0,439.0,0.29,67.18,179.0,64.8,50.44
+win,672.0,292.0,0.17,80.34,106.0,66.98,40.32
+brier,672.0,262.0,0.35,93.53,387.0,91.73,35.39

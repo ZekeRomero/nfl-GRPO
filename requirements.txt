@@ -1,4 +1,5 @@
 pandas
 numpy
 scikit-learn
-# training (Colab): unsloth, trl, datasets
+matplotlib
+# training (Colab only): unsloth, trl, datasets

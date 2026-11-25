@@ -44,6 +44,7 @@ assert parse_output(good) == ("HOME", 0.6, True)
 assert parse_output("HOME")[0] is None
 assert parse_output("<pick>HOME or AWAY</pick>")[0] is None            # copied the template
 assert parse_output("<pick>Team B (home)</pick>")[0] == "HOME"          # extra words tolerated
+assert parse_output("<pick>HOME</pick> or <pick>AWAY</pick>")[0] is None  # copied both options
 assert parse_output("<pick>away</pick><confidence>60%</confidence>")[:2] == ("AWAY", 0.6)
 assert parse_output(good[:60])[0] is None                               # cut off before the pick
 c = [good, good.replace("HOME", "AWAY"), "I like the home team", good, "<pick>HOME</pick>"]

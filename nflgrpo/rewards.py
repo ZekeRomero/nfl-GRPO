@@ -19,12 +19,13 @@ _REASON = re.compile(r"<reasoning>(.+?)</reasoning>", re.S | re.I)
 
 
 def _pick(text):
-    """Side named in the LAST <pick> tag. Tolerates extra words ("Team B (home)")
-    but not an answer naming both sides ("HOME or AWAY")."""
+    """The side picked, or None. Every <pick> tag in the answer must name the
+    same single side. An answer that copies the prompt's two options
+    ("<pick>HOME</pick> or <pick>AWAY</pick>") names both, so it is not a pick."""
     tags = _PICK.findall(text)
     if not tags:
         return None, 0
-    sides = {m.upper() for m in _SIDE.findall(tags[-1])}
+    sides = {m.upper() for t in tags for m in _SIDE.findall(t)}
     return (sides.pop() if len(sides) == 1 else None), len(tags)
 
 

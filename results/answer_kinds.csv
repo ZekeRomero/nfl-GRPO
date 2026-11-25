@@ -1,0 +1,5 @@
+kind,untrained_val,untrained_test,win_val,win_test,brier_val,brier_test
+copied both options,125,423,54,186,0,0
+no pick tag,3,1,0,0,0,0
+other,2,2,0,0,0,0
+single pick,93,246,169,486,223,672
